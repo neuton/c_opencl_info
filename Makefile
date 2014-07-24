@@ -1,5 +1,5 @@
-INC = $(AMDAPPSDKROOT)include
-LIB = $(AMDAPPSDKROOT)lib/x86
+INC = $(AMDAPPSDKROOT)/include
+LIB = $(AMDAPPSDKROOT)/lib/x86_64
 CC = gcc
 EXEC = info
 
