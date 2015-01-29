@@ -1,20 +1,43 @@
-INC = $(AMDAPPSDKROOT)/include
-LIB = $(AMDAPPSDKROOT)/lib/x86_64
-CC = gcc
 EXEC = info
+ARCH = 64
+CC = gcc
+CCFLAGS = -O
+LDFLAGS =
+
+ifdef AMDAPPSDKROOT
+	CCFLAGS := $(CCFLAGS) -I"$(AMDAPPSDKROOT)/include"
+	ifeq ($(ARCH), 64)
+		LDFLAGS := $(LDFLAGS) -L"$(AMDAPPSDKROOT)/lib/x86_64" -lOpenCL
+	else
+		LDFLAGS := $(LDFLAGS) -L"$(AMDAPPSDKROOT)/lib/x86" -lOpenCL
+	endif
+endif
 
 ifeq ($(OS), Windows_NT)
-	EXEC := $(EXEC).exe
 	SHELL = cmd
+	EXEC := $(EXEC).exe
+	RM = del
 else
 	SHELL = /bin/sh
+	RM = rm
+	ifeq ($(shell uname -s), Darwin)
+		ifndef AMDAPPSDKROOT
+			CC = clang
+			LDFLAGS := $(LDFLAGS) -framework OpenCL
+		endif
+	endif
 endif
 
 $(EXEC): info.o cl_error.o
-	@$(CC) info.o cl_error.o -o $@ -L"$(LIB)" -lOpenCL
+	$(CC) $^ -o $@ $(LDFLAGS)
 
 info.o: info.c cl_error.h Makefile
-	@$(CC) -c info.c -o $@ -I"$(INC)"
+	$(CC) -c $< -o $@ $(CCFLAGS)
 
 cl_error.o: cl_error.c cl_error.h Makefile
-	@$(CC) -c cl_error.c -o $@ -I"$(INC)"
+	$(CC) -c $< -o $@ $(CCFLAGS)
+
+clean:
+	$(RM) $(EXEC) info.o cl_error.o
+
+.PHONY: clean
